@@ -11,11 +11,26 @@ public class EmailService {
     @Inject
     Mailer mailer;
 
+    // Método auxiliar para obtener la URL correcta (Nube o Local)
+    private String getFrontendUrl() {
+        String url = System.getenv("FRONTEND_URL");
+        // Si no existe la variable (o estamos en local sin configurarla), 
+        // usamos la de producción por seguridad para que los correos reales funcionen.
+        if (url == null || url.trim().isEmpty()) {
+            return "https://kpbm-frontend.onrender.com"; 
+        }
+        // Asegurar que no tenga barra al final para evitar dobles barras //
+        if (url.endsWith("/")) {
+            return url.substring(0, url.length() - 1);
+        }
+        return url;
+    }
+
     public void enviarVerificacion(String email, String token) {
-        // CAMBIO 1: Puerto 5174 (Frontend de KPBM)
-        String link = "http://localhost:5174/verificar?token=" + token;
+        String baseUrl = getFrontendUrl();
+        String link = baseUrl + "/verificar?token=" + token;
         
-        // CAMBIO 2: Nombre KPBM y Color Fucsia (#C2185B)
+        // Diseño KPBM Fucsia (#C2185B)
         String html = "<h1>Bienvenido a KPBM</h1>"
                 + "<p>Gracias por registrarte. Para activar tu cuenta, haz clic en el siguiente enlace:</p>"
                 + "<a href='" + link + "' style='background:#C2185B;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;font-weight:bold;'>ACTIVAR CUENTA</a>";
@@ -24,11 +39,10 @@ public class EmailService {
     }
 
     public void enviarRecuperacion(String email, String token) {
-        // CAMBIO 1: Puerto 5174
-        String link = "http://localhost:5174/restablecer?token=" + token;
+        String baseUrl = getFrontendUrl();
+        String link = baseUrl + "/restablecer?token=" + token;
         
-        // CAMBIO 2: Nombre KPBM y Color Dorado/Advertencia (#FBC02D o mantener rojo alerta)
-        // Usaremos el Fucsia para mantener la marca, o un rojo oscuro.
+        // Diseño KPBM
         String html = "<h1>Recuperación de Contraseña</h1>"
                 + "<p>Has solicitado cambiar tu clave en KPBM. Haz clic abajo para crear una nueva:</p>"
                 + "<a href='" + link + "' style='background:#C2185B;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;font-weight:bold;'>RESTABLECER CONTRASEÑA</a>"
@@ -38,7 +52,7 @@ public class EmailService {
     }
 
     public void enviarMensajeContacto(String nombre, String emailCliente, String asunto, String mensaje) {
-        // Este es el correo del dueño (puedes cambiarlo si KPBM tiene otro correo)
+        // Este es el correo del dueño
         String emailAdmin = "consultoriatecnologicaerazo@gmail.com"; 
 
         String html = "<h2>📩 Nuevo Mensaje de la Web KPBM</h2>"
